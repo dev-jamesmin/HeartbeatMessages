@@ -1,6 +1,6 @@
-// co/koko/heartbeatmessages/ui/components/HeartbeatCard.kt
 package co.koko.heartbeatmessages.ui.components
 
+import LightPinkAnswers
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -26,22 +26,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import co.koko.heartbeatmessages.data.HeartbeatMessage
+import androidx.compose.foundation.interaction.MutableInteractionSource // 이 import를 추가하세요.
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HeartbeatCard(message: HeartbeatMessage) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    // 포커스 효과 제거를 위한 interactionSource
+    val interactionSource = remember { MutableInteractionSource() }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize(animationSpec = tween(durationMillis = 300))
-            .clickable { expanded = !expanded }
-            .border(0.dp, Color.Transparent),
+            // ripple 효과 제거
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) { expanded = !expanded }
+            .border(0.5.dp, Color(0xFFFBE7F3), RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        // 메인 카드 배경색을 흰색(surface)으로 변경
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -54,15 +60,12 @@ fun HeartbeatCard(message: HeartbeatMessage) {
                 Text(
                     text = message.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    // 텍스트 색상을 어두운 색(onSurface)으로 변경
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = if (expanded) "Collapse" else "Expand",
-                    // 아이콘 색상도 어두운 색으로 변경
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(24.dp)
                 )
@@ -72,7 +75,6 @@ fun HeartbeatCard(message: HeartbeatMessage) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider(
                     modifier = Modifier.fillMaxWidth(),
-                    // 구분선 색상을 어두운 색으로 변경
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                     thickness = 1.dp
                 )
@@ -86,8 +88,7 @@ fun HeartbeatCard(message: HeartbeatMessage) {
                             .padding(vertical = 4.dp),
                         shape = RoundedCornerShape(8.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                        // 답변 카드 배경색은 연한 핑크(tertiary)로 유지
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                        colors = CardDefaults.cardColors(containerColor = LightPinkAnswers)
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
                             Text(
@@ -100,7 +101,7 @@ fun HeartbeatCard(message: HeartbeatMessage) {
                             // 복사 및 공유 버튼을 좌측 정렬하고 텍스트 추가
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.Start, // 좌측 정렬
+                                horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 // 복사 버튼
@@ -141,6 +142,7 @@ fun HeartbeatCard(message: HeartbeatMessage) {
         }
     }
 }
+
 // 클립보드에 텍스트 복사 (기존과 동일)
 private fun copyToClipboard(context: Context, text: String) {
     val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

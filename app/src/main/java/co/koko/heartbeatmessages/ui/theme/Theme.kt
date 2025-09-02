@@ -6,7 +6,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import co.koko.heartbeatmessages.ui.components.*
 
 private val DarkColorScheme = darkColorScheme(
     primary = Pink80,
@@ -19,9 +18,9 @@ private val LightColorScheme = lightColorScheme(
     primary = Pink40,
     onPrimary = TextColorLight,
     secondary = Pink80,
-    tertiary = LightPink,
-    background = BackgroundPink, // 전체 화면 배경색
-    surface = Color.White,   // 카드 배경색
+    tertiary = LightBackground, // 새로운 배경색으로 변경
+    background = BackgroundColor, // 새로운 배경색으로 변경
+    surface = Color.White,
     onSurface = TextColorDark,
     error = ErrorRed,
     onError = OnError,
