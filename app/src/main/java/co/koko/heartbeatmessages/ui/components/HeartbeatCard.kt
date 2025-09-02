@@ -1,60 +1,161 @@
 // co/koko/heartbeatmessages/ui/components/HeartbeatCard.kt
 package co.koko.heartbeatmessages.ui.components
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.widget.Toast
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowForwardIos
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import co.koko.heartbeatmessages.data.HeartbeatMessage
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HeartbeatCard(message: HeartbeatMessage) {
+    var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { /* TODO: 카드 클릭 시 액션 */ },
-        shape = RoundedCornerShape(10.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .animateContentSize(animationSpec = tween(durationMillis = 300))
+            .clickable { expanded = !expanded }
+            .border(0.dp, Color.Transparent),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        // 메인 카드 배경색을 흰색(surface)으로 변경
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = message.title, style = MaterialTheme.typography.titleSmall)
+        Column(modifier = Modifier.padding(16.dp)) {
+            // 질문 (타이틀) 부분
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = message.message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(top = 4.dp)
+                    text = message.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    // 텍스트 색상을 어두운 색(onSurface)으로 변경
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    // 아이콘 색상도 어두운 색으로 변경
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(24.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
-            Icon(
-                imageVector = Icons.Default.ArrowForwardIos,
-                contentDescription = "Details",
-                tint = Color.Gray
-            )
+
+            if (expanded) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider(
+                    modifier = Modifier.fillMaxWidth(),
+                    // 구분선 색상을 어두운 색으로 변경
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                    thickness = 1.dp
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 모든 답변을 핑크색 카드로 표시
+                message.answers.forEachIndexed { index, answer ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        // 답변 카드 배경색은 연한 핑크(tertiary)로 유지
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = answer,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // 복사 및 공유 버튼을 좌측 정렬하고 텍스트 추가
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Start, // 좌측 정렬
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // 복사 버튼
+                                TextButton(
+                                    onClick = { copyToClipboard(context, answer) },
+                                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ContentCopy,
+                                        contentDescription = "Copy"
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("복사")
+                                }
+
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                // 공유 버튼
+                                TextButton(
+                                    onClick = { shareMessage(context, answer) },
+                                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Share,
+                                        contentDescription = "Share"
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("공유")
+                                }
+                            }
+                        }
+                    }
+                    if (index < message.answers.size - 1) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                }
+            }
         }
     }
+}
+// 클립보드에 텍스트 복사 (기존과 동일)
+private fun copyToClipboard(context: Context, text: String) {
+    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clipData = ClipData.newPlainText("Heartbeat Message", text)
+    clipboardManager.setPrimaryClip(clipData)
+    Toast.makeText(context, "복사되었습니다!", Toast.LENGTH_SHORT).show()
+}
+
+// 메시지 공유 (기존과 동일)
+private fun shareMessage(context: Context, text: String) {
+    val sendIntent: Intent = Intent().apply {
+        action = Intent.ACTION_SEND
+        putExtra(Intent.EXTRA_TEXT, text)
+        type = "text/plain"
+    }
+    val shareIntent = Intent.createChooser(sendIntent, null)
+    context.startActivity(shareIntent)
 }

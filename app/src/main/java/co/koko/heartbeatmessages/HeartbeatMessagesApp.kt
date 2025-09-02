@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import co.koko.heartbeatmessages.data.HeartbeatMessage
 import co.koko.heartbeatmessages.data.RelationshipStatus
 import co.koko.heartbeatmessages.ui.components.*
 

@@ -23,8 +23,8 @@ fun RelationshipTabs(
 ) {
     val tabs = listOf(
         RelationshipStatus.Some,
-        RelationshipStatus.LessThanOneYear,
-        RelationshipStatus.MoreThanOneYear
+        RelationshipStatus.Dating1Year,
+        RelationshipStatus.Dating2YearPlus
     )
     Row(
         modifier = Modifier

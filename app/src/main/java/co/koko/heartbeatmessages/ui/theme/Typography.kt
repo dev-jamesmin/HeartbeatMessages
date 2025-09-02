@@ -1,6 +1,6 @@
-package co.koko.heartbeatmessages.ui.theme
+// co/koko/heartbeatmessages/ui/theme/Typography.kt
 
-import androidx.compose.material3.Typography
+import androidx.compose.material3.Typography // 이 import를 꼭 확인하세요.
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
