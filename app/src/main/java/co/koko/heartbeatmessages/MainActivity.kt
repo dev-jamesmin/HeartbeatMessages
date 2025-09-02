@@ -325,14 +325,15 @@ fun SettingScreen() {
         )
 
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         SettingNavigationItem(
             text = "이용약관", // text만 사용
             onClick = {
-                // TODO: 이용 약관 화면 이동 로직 구현
+                val url = "https://www.notion.so/262931b917cf80d5bf49ee992f3cea48?source=copy_link"
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                context.startActivity(intent)
             }
         )
-
         Spacer(modifier = Modifier.weight(1f))
 
         // 버전 정보
