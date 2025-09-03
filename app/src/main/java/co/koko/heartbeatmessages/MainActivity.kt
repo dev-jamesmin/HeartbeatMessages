@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,13 +30,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import co.koko.heartbeatmessages.ui.components.AppVersionText
-import co.koko.heartbeatmessages.ui.components.FamilyAppSingleItem
 import co.koko.heartbeatmessages.ui.components.SettingDescriptionNavigationItem
 import co.koko.heartbeatmessages.ui.components.SettingNavigationItem
-import co.koko.heartbeatmessages.ui.components.SettingSectionTitle
-import co.koko.heartbeatmessages.ui.components.SettingToggleItem
+import android.content.pm.PackageManager
+import android.os.Build
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,9 +67,6 @@ class MainActivity : ComponentActivity() {
                                 selectedBottomNavItem = index
                             }
                         },
-//                        floatingActionButton = {
-//                            HeartbeatFloatingActionButton()
-//                        },
                         content = { paddingValues ->
                             Column(
                                 modifier = Modifier
@@ -86,12 +80,6 @@ class MainActivity : ComponentActivity() {
                                     CardList(selectedTab = selectedTab)
                                 } else if (selectedBottomNavItem == 1) {
                                     SettingScreen()
-//                                    Box(
-//                                        modifier = Modifier.fillMaxSize(),
-//                                        contentAlignment = Alignment.Center
-//                                    ) {
-//                                        Text(text = "설정 화면입니다", style = MaterialTheme.typography.headlineMedium)
-//                                    }
                                 }
                             }
                         }
@@ -108,7 +96,7 @@ fun HeartbeatTopAppBar() {
     TopAppBar(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFFFBFBFC)), // 상단 배경색도 변경
+            .background(Color(0xFFFBFBFC)),
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -145,7 +133,7 @@ fun HeartbeatTopAppBar() {
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color(0xFFFBFBFC) // 상단 배경색도 변경
+            containerColor = Color(0xFFFBFBFC)
         )
     )
 }
@@ -242,46 +230,49 @@ fun HeartbeatNavigationBar(
     }
 }
 
-@Composable
-fun HeartbeatFloatingActionButton() {
-    FloatingActionButton(
-        onClick = { /* TODO: FAB 클릭 액션 */ },
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary
-    ) {
-        Icon(Icons.Filled.Add, "새로운 메시지 추가")
-    }
-}
+//@Composable
+//fun HeartbeatFloatingActionButton() {
+//    FloatingActionButton(
+//        onClick = { /* TODO: FAB 클릭 액션 */ },
+//        containerColor = MaterialTheme.colorScheme.primary,
+//        contentColor = MaterialTheme.colorScheme.onPrimary
+//    ) {
+//        Icon(Icons.Filled.Add, "새로운 메시지 추가")
+//    }
+//}
 
 // 설정 화면 컴포넌트
 @Composable
 fun SettingScreen() {
-    var newAlarmChecked by remember { mutableStateOf(true) } // 알림 설정 토글 상태
-    val scrollState = rememberScrollState() // 스크롤 상태를 기억
+    val scrollState = rememberScrollState()
     val context = LocalContext.current
+
+    // PackageManager를 사용하여 versionName 가져오기
+    val packageManager = context.packageManager
+    val packageName = context.packageName
+    val packageInfo = try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageInfo(packageName, 0)
+        }
+    } catch (e: PackageManager.NameNotFoundException) {
+        null
+    }
+    val versionName = packageInfo?.versionName ?: "알 수 없음"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(top = 16.dp) // 상단 TopBar와의 간격
-            .verticalScroll(scrollState) // verticalScroll 모디파이어 적용
+            .padding(top = 16.dp)
+            .verticalScroll(scrollState)
     ) {
-        // 알림 설정 섹션
-//        SettingSectionTitle(title = "알림 설정")
-//        SettingToggleItem(
-//            text = "새로운 멘트 알림 받기", // text만 사용
-//            checked = newAlarmChecked,
-//            onCheckedChange = { newAlarmChecked = it }
-//        )
-//        Spacer(modifier = Modifier.height(16.dp))
-
-        // 앱 공유하기 섹션
-        // 기존 SettingNavigationItem 대신 SettingDescriptionNavigationItem 사용 예시
         SettingDescriptionNavigationItem(
             title = "앱 공유하기",
-            description = "친구들에게 심쿵멘트 추천하기", // 설명 텍스트 추가
+            description = "친구들에게 심쿵멘트 추천하기",
             onClick = {
-                // TODO: 공유하기 로직 구현
                 val shareIntent = Intent().apply {
                     action = Intent.ACTION_SEND
                     putExtra(Intent.EXTRA_TEXT, "설렘이 필요할 때, '심쿵멘트' 앱을 다운로드하고 연인에게 설렘을 선물하세요! Google Play 스토어에서 다운로드: https://play.google.com/store/apps/details?id=${context.packageName}")
@@ -292,18 +283,15 @@ fun SettingScreen() {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 리뷰 작성 섹션
         SettingDescriptionNavigationItem(
             title = "리뷰 작성",
-            description = "앱스토어에서 별점 남기기", // 설명 텍스트 추가
+            description = "앱스토어에서 별점 남기기",
             onClick = {
-                // TODO: 앱스토어 이동 로직 구현
                 val uri = Uri.parse("market://details?id=${context.packageName}")
                 val reviewIntent = Intent(Intent.ACTION_VIEW, uri)
                 try {
                     context.startActivity(reviewIntent)
                 } catch (e: Exception) {
-                    // 앱스토어가 설치되지 않은 경우 웹 브라우저로 이동
                     val webUri = Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
                     val webIntent = Intent(Intent.ACTION_VIEW, webUri)
                     context.startActivity(webIntent)
@@ -313,10 +301,9 @@ fun SettingScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 패밀리 앱 섹션
         SettingDescriptionNavigationItem(
             title = "패밀리 앱",
-            description = "다른 유용한 앱들 둘러보기", // 설명 텍스트 추가
+            description = "다른 유용한 앱들 둘러보기",
             onClick = {
                 val url = "https://play.google.com/store/apps/developer?id=KOKO+COMPANY"
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -327,7 +314,7 @@ fun SettingScreen() {
         Spacer(modifier = Modifier.height(16.dp))
 
         SettingNavigationItem(
-            text = "이용약관", // text만 사용
+            text = "이용약관",
             onClick = {
                 val url = "https://www.notion.so/262931b917cf80d5bf49ee992f3cea48?source=copy_link"
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
@@ -336,7 +323,6 @@ fun SettingScreen() {
         )
         Spacer(modifier = Modifier.weight(1f))
 
-        // 버전 정보
-        AppVersionText(version = "1.0.0")
+        AppVersionText(version = versionName)
     }
 }
