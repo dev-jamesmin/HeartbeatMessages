@@ -35,6 +35,10 @@ import co.koko.heartbeatmessages.ui.components.SettingDescriptionNavigationItem
 import co.koko.heartbeatmessages.ui.components.SettingNavigationItem
 import android.content.pm.PackageManager
 import android.os.Build
+import co.koko.heartbeatmessages.ui.components.HeartbeatNavigationBar
+import co.koko.heartbeatmessages.ui.screens.ChatScreen
+import co.koko.heartbeatmessages.ui.screens.MainScreen
+import co.koko.heartbeatmessages.ui.screens.SettingScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,41 +49,25 @@ class MainActivity : ComponentActivity() {
                 val useDarkIcons = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
                 SideEffect {
-                    systemUiController.setSystemBarsColor(
-                        color = Color.Transparent,
-                        darkIcons = useDarkIcons
-                    )
+                    systemUiController.setSystemBarsColor(color = Color.Transparent, darkIcons = useDarkIcons)
                 }
 
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    var selectedTab by remember { mutableStateOf(RelationshipStatus.Some) }
+                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     var selectedBottomNavItem by remember { mutableStateOf(0) }
 
                     Scaffold(
-                        topBar = {
-                            HeartbeatTopAppBar()
-                        },
+                        topBar = { HeartbeatTopAppBar() },
                         bottomBar = {
                             HeartbeatNavigationBar(selectedBottomNavItem) { index ->
                                 selectedBottomNavItem = index
                             }
                         },
                         content = { paddingValues ->
-                            Column(
-                                modifier = Modifier
-                                    .padding(paddingValues)
-                                    .fillMaxSize()
-                            ) {
-                                if (selectedBottomNavItem == 0) {
-                                    HeartbeatTabs(selectedTab = selectedTab) { newTab ->
-                                        selectedTab = newTab
-                                    }
-                                    CardList(selectedTab = selectedTab)
-                                } else if (selectedBottomNavItem == 1) {
-                                    SettingScreen()
+                            Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
+                                when (selectedBottomNavItem) {
+                                    0 -> MainScreen()
+                                    1 -> ChatScreen()
+                                    2 -> SettingScreen()
                                 }
                             }
                         }
@@ -196,133 +184,36 @@ fun HeartbeatTabs(
     }
 }
 
-@Composable
-fun HeartbeatNavigationBar(
-    selectedItem: Int,
-    onItemSelected: (Int) -> Unit
-) {
-    NavigationBar(
-        modifier = Modifier.border(
-            BorderStroke(1.dp, Color(0xFFFBE7F3)),
-            shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp)
-        ),
-        containerColor = MaterialTheme.colorScheme.tertiary,
-        contentColor = MaterialTheme.colorScheme.onSurface,
-    ) {
-        val items = listOf("대화 스타터", "설정")
-        val icons = listOf(Icons.Filled.Favorite, Icons.Filled.Settings)
-
-        items.forEachIndexed { index, item ->
-            NavigationBarItem(
-                icon = { Icon(icons[index], contentDescription = item) },
-                label = { Text(item) },
-                selected = selectedItem == index,
-                onClick = { onItemSelected(index) },
-                colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = Color.Transparent,
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurface,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-    }
-}
-
 //@Composable
-//fun HeartbeatFloatingActionButton() {
-//    FloatingActionButton(
-//        onClick = { /* TODO: FAB 클릭 액션 */ },
-//        containerColor = MaterialTheme.colorScheme.primary,
-//        contentColor = MaterialTheme.colorScheme.onPrimary
+//fun HeartbeatNavigationBar(
+//    selectedItem: Int,
+//    onItemSelected: (Int) -> Unit
+//) {
+//    NavigationBar(
+//        modifier = Modifier.border(
+//            BorderStroke(1.dp, Color(0xFFFBE7F3)),
+//            shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp)
+//        ),
+//        containerColor = MaterialTheme.colorScheme.tertiary,
+//        contentColor = MaterialTheme.colorScheme.onSurface,
 //    ) {
-//        Icon(Icons.Filled.Add, "새로운 메시지 추가")
+//        val items = listOf("대화 스타터", "설정")
+//        val icons = listOf(Icons.Filled.Favorite, Icons.Filled.Settings)
+//
+//        items.forEachIndexed { index, item ->
+//            NavigationBarItem(
+//                icon = { Icon(icons[index], contentDescription = item) },
+//                label = { Text(item) },
+//                selected = selectedItem == index,
+//                onClick = { onItemSelected(index) },
+//                colors = NavigationBarItemDefaults.colors(
+//                    indicatorColor = Color.Transparent,
+//                    selectedIconColor = MaterialTheme.colorScheme.primary,
+//                    selectedTextColor = MaterialTheme.colorScheme.primary,
+//                    unselectedIconColor = MaterialTheme.colorScheme.onSurface,
+//                    unselectedTextColor = MaterialTheme.colorScheme.onSurface
+//                )
+//            )
+//        }
 //    }
 //}
-
-// 설정 화면 컴포넌트
-@Composable
-fun SettingScreen() {
-    val scrollState = rememberScrollState()
-    val context = LocalContext.current
-
-    // PackageManager를 사용하여 versionName 가져오기
-    val packageManager = context.packageManager
-    val packageName = context.packageName
-    val packageInfo = try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            packageManager.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(0))
-        } else {
-            @Suppress("DEPRECATION")
-            packageManager.getPackageInfo(packageName, 0)
-        }
-    } catch (e: PackageManager.NameNotFoundException) {
-        null
-    }
-    val versionName = packageInfo?.versionName ?: "알 수 없음"
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(top = 16.dp)
-            .verticalScroll(scrollState)
-    ) {
-        SettingDescriptionNavigationItem(
-            title = "앱 공유하기",
-            description = "친구들에게 심쿵멘트 추천하기",
-            onClick = {
-                val shareIntent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_TEXT, "설렘이 필요할 때, '심쿵멘트' 앱을 다운로드하고 연인에게 설렘을 선물하세요! Google Play 스토어에서 다운로드: https://play.google.com/store/apps/details?id=${context.packageName}")
-                    type = "text/plain"
-                }
-                context.startActivity(Intent.createChooser(shareIntent, "앱 공유하기"))
-            }
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SettingDescriptionNavigationItem(
-            title = "리뷰 작성",
-            description = "앱스토어에서 별점 남기기",
-            onClick = {
-                val uri = Uri.parse("market://details?id=${context.packageName}")
-                val reviewIntent = Intent(Intent.ACTION_VIEW, uri)
-                try {
-                    context.startActivity(reviewIntent)
-                } catch (e: Exception) {
-                    val webUri = Uri.parse("https://play.google.com/store/apps/details?id=${context.packageName}")
-                    val webIntent = Intent(Intent.ACTION_VIEW, webUri)
-                    context.startActivity(webIntent)
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SettingDescriptionNavigationItem(
-            title = "패밀리 앱",
-            description = "다른 유용한 앱들 둘러보기",
-            onClick = {
-                val url = "https://play.google.com/store/apps/developer?id=KOKO+COMPANY"
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                context.startActivity(intent)
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SettingNavigationItem(
-            text = "이용약관",
-            onClick = {
-                val url = "https://www.notion.so/262931b917cf80d5bf49ee992f3cea48?source=copy_link"
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                context.startActivity(intent)
-            }
-        )
-        Spacer(modifier = Modifier.weight(1f))
-
-        AppVersionText(version = versionName)
-    }
-}
