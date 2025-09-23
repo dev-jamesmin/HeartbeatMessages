@@ -1,8 +1,11 @@
 package co.koko.heartbeatmessages.ui.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import co.koko.heartbeatmessages.data.Message
+import co.koko.heartbeatmessages.data.QuestionRequest
+import co.koko.heartbeatmessages.data.RetrofitClient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -28,12 +31,17 @@ class ChatViewModel : ViewModel() {
             _messages.value = _messages.value + Message(text, isFromUser = true)
             _isLoading.value = true
 
-            // TODO: 실제 API 호출 로직
-            delay(1500)
-            val aiResponse = "AI 응답: \"${text}\" 상황에 대한 심쿵멘트입니다."
-
-            _messages.value = _messages.value + Message(aiResponse, isFromUser = false)
-            _isLoading.value = false
+            try {
+                // [수정] 실제 API 호출
+                val response = RetrofitClient.api.postQuestion(QuestionRequest(question = text))
+                _messages.value = _messages.value + Message(response.answer, isFromUser = false)
+            } catch (e: Exception) {
+                // API 호출 실패 시
+                Log.e("ChatViewModel", "API Error: ${e.message}")
+                _messages.value = _messages.value + Message("죄송해요, 지금은 답변을 드릴 수 없어요. 잠시 후 다시 시도해주세요.", isFromUser = false)
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }

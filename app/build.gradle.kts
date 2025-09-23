@@ -63,4 +63,14 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended-android:1.6.8")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.28.0")
+
+    // Retrofit (네트워크 통신 라이브러리)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+
+    // Kotlinx Serialization Converter (JSON <-> Kotlin 데이터 클래스 변환)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
+
+    // OkHttp Logging Interceptor (통신 로그 확인용)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 }

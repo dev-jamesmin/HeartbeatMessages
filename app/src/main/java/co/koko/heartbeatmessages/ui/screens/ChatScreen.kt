@@ -1,5 +1,6 @@
 package co.koko.heartbeatmessages.ui.screens
 
+import android.content.Intent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,7 +16,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import co.koko.heartbeatmessages.data.Message
 import co.koko.heartbeatmessages.ui.viewmodel.ChatViewModel
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 // 새로운 채팅 화면 UI
 @Composable
 fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
@@ -80,10 +86,13 @@ fun ChatScreen(viewModel: ChatViewModel = viewModel()) {
 // 채팅 말풍선 UI
 @Composable
 fun MessageBubble(message: Message) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (message.isFromUser) Arrangement.End else Arrangement.Start
     ) {
+        Column {
         Card(
             shape = RoundedCornerShape(
                 topStart = 16.dp, topEnd = 16.dp,
@@ -100,6 +109,42 @@ fun MessageBubble(message: Message) {
                 modifier = Modifier.padding(16.dp),
                 color = if (message.isFromUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
             )
+        }
+
+            // ---▼ [복사/공유 버튼 추가] ▼---
+            // AI가 보낸 메시지일 경우에만 버튼들을 표시합니다.
+            if (!message.isFromUser) {
+                Row(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .padding(horizontal = 12.dp)
+                ) {
+                    // 복사 버튼
+                    TextButton(onClick = {
+                        clipboardManager.setText(AnnotatedString(message.text))
+                    }) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = "복사", modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("복사")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    // 공유 버튼
+                    TextButton(onClick = {
+                        val sendIntent: Intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, message.text)
+                            type = "text/plain"
+                        }
+                        val shareIntent = Intent.createChooser(sendIntent, null)
+                        context.startActivity(shareIntent)
+                    }) {
+                        Icon(Icons.Default.Share, contentDescription = "공유", modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("공유")
+                    }
+                }
+            }
+            // ---▲ [복사/공유 버튼 추가] ▲---
         }
     }
 }
