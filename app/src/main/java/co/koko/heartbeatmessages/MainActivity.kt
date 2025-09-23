@@ -52,10 +52,16 @@ class MainActivity : ComponentActivity() {
                 val useDarkIcons = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
                 SideEffect {
-                    systemUiController.setSystemBarsColor(color = Color.Transparent, darkIcons = useDarkIcons)
+                    systemUiController.setSystemBarsColor(
+                        color = Color.Transparent,
+                        darkIcons = useDarkIcons
+                    )
                 }
 
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
                     var selectedBottomNavItem by remember { mutableStateOf(0) }
 
                     Scaffold(
@@ -65,16 +71,17 @@ class MainActivity : ComponentActivity() {
                                 selectedBottomNavItem = index
                             }
                         },
-                        content = { paddingValues ->
-                            Column(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-                                when (selectedBottomNavItem) {
-                                    0 -> MainScreen()
-                                    1 -> ChatScreen()
-                                    2 -> SettingScreen()
-                                }
+                    ) { paddingValues ->
+                        Box(modifier = Modifier.padding(paddingValues)) {
+                            when (selectedBottomNavItem) {
+                                // [수정] MainScreen에 modifier를 전달합니다.
+                                0 -> MainScreen(modifier = Modifier.fillMaxSize())
+                                1 -> ChatScreen(modifier = Modifier.fillMaxSize())
+//                                2 -> SettingScreen(modifier = Modifier.fillMaxSize())
+                                2 -> SettingScreen()
                             }
                         }
-                    )
+                    }
                 }
             }
         }
@@ -128,4 +135,3 @@ fun HeartbeatTopAppBar() {
         )
     )
 }
-

@@ -26,19 +26,16 @@ class ChatViewModel : ViewModel() {
 
     fun sendMessage(text: String) {
         if (text.isBlank() || _isLoading.value) return
-
         viewModelScope.launch {
+            // [수정] StateFlow의 값 변경을 올바르게 감지하도록 새 리스트를 생성하여 할당
             _messages.value = _messages.value + Message(text, isFromUser = true)
             _isLoading.value = true
 
             try {
-                // [수정] 실제 API 호출
                 val response = RetrofitClient.api.postQuestion(QuestionRequest(question = text))
                 _messages.value = _messages.value + Message(response.answer, isFromUser = false)
             } catch (e: Exception) {
-                // API 호출 실패 시
-                Log.e("ChatViewModel", "API Error: ${e.message}")
-                _messages.value = _messages.value + Message("죄송해요, 지금은 답변을 드릴 수 없어요. 잠시 후 다시 시도해주세요.", isFromUser = false)
+                _messages.value = _messages.value + Message("죄송해요, 지금은 답변을 드릴 수 없어요.", isFromUser = false)
             } finally {
                 _isLoading.value = false
             }

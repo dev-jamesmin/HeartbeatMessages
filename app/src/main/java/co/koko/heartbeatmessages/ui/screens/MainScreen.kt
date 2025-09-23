@@ -2,6 +2,8 @@ package co.koko.heartbeatmessages.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,13 +25,18 @@ import co.koko.heartbeatmessages.data.RelationshipStatus
 import co.koko.heartbeatmessages.ui.components.CardList
 
 @Composable
-fun MainScreen() {
+// In MainScreen.kt
+fun MainScreen(modifier: Modifier = Modifier) {
     var selectedTab by remember { mutableStateOf(RelationshipStatus.Some) }
 
-    HeartbeatTabs(selectedTab = selectedTab) { newTab ->
-        selectedTab = newTab
+    // [수정] 최상위 Column에 전달받은 modifier를 적용합니다.
+    // 이 modifier에는 MainActivity의 Scaffold가 계산한 상단바와 하단 탭의 높이값이 포함됩니다.
+    Column(modifier = modifier.fillMaxSize()) {
+        HeartbeatTabs(selectedTab = selectedTab) { newTab ->
+            selectedTab = newTab
+        }
+        CardList(selectedTab = selectedTab)
     }
-    CardList(selectedTab = selectedTab)
 }
 
 @Composable
