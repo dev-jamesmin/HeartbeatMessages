@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -21,6 +22,7 @@ import co.koko.heartbeatmessages.ui.components.AppVersionText
 import co.koko.heartbeatmessages.ui.components.SettingDescriptionNavigationItem
 import co.koko.heartbeatmessages.ui.components.SettingNavigationItem
 import androidx.core.net.toUri
+import co.koko.heartbeatmessages.util.AdManagerCompose
 
 
 @Composable
@@ -105,6 +107,12 @@ fun SettingScreen() {
         )
         Spacer(modifier = Modifier.weight(1f))
 
-        AppVersionText(version = versionName)
+//        AppVersionText(version = versionName)
+
+        // 하단 정보 텍스트와 광고
+        Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+            AppVersionText(version = versionName)
+            AdManagerCompose.BannerAdView(modifier = Modifier.fillMaxWidth())
+        }
     }
 }

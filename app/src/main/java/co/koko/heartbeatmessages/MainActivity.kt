@@ -40,12 +40,13 @@ import co.koko.heartbeatmessages.ui.components.HeartbeatNavigationBar
 import co.koko.heartbeatmessages.ui.screens.ChatScreen
 import co.koko.heartbeatmessages.ui.screens.MainScreen
 import co.koko.heartbeatmessages.ui.screens.SettingScreen
+import co.koko.heartbeatmessages.util.AdManagerCompose
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
+        AdManagerCompose.loadAdsOnAppStart(this)
         setContent {
             HeartbeatMessagesTheme {
                 val systemUiController = rememberSystemUiController()

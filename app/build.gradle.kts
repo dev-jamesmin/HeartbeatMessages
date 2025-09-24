@@ -80,4 +80,9 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version") // 코루틴 지원
     ksp("androidx.room:room-compiler:$room_version") // 어노테이션 프로세서
+
+    implementation("com.unity3d.ads-mediation:mediation-sdk:8.10.0")
+    // Add Unity Ads Network
+    implementation("com.unity3d.ads-mediation:unityads-adapter:4.3.57")
+    implementation("com.unity3d.ads:unity-ads:4.15.1")
 }

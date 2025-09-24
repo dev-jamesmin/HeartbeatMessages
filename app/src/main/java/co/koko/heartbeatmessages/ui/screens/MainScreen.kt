@@ -23,19 +23,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import co.koko.heartbeatmessages.data.RelationshipStatus
 import co.koko.heartbeatmessages.ui.components.CardList
+import co.koko.heartbeatmessages.util.AdManagerCompose
+
 
 @Composable
-// In MainScreen.kt
 fun MainScreen(modifier: Modifier = Modifier) {
     var selectedTab by remember { mutableStateOf(RelationshipStatus.Some) }
 
-    // [수정] 최상위 Column에 전달받은 modifier를 적용합니다.
-    // 이 modifier에는 MainActivity의 Scaffold가 계산한 상단바와 하단 탭의 높이값이 포함됩니다.
     Column(modifier = modifier.fillMaxSize()) {
         HeartbeatTabs(selectedTab = selectedTab) { newTab ->
             selectedTab = newTab
         }
-        CardList(selectedTab = selectedTab)
+
+        // CardList가 남은 공간을 모두 차지하도록 weight 적용
+        Box(modifier = Modifier.weight(1f)) {
+            CardList(selectedTab = selectedTab)
+        }
+
+        // 하단 배너 광고
+        AdManagerCompose.BannerAdView(modifier = Modifier.fillMaxWidth())
     }
 }
 
