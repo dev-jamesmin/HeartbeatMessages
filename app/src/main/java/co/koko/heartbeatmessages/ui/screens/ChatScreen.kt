@@ -1,6 +1,11 @@
 package co.koko.heartbeatmessages.ui.screens
 
+import ChatViewModel
+import android.app.Application
 import android.content.Intent
+import android.util.Log
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,39 +23,67 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import co.koko.heartbeatmessages.data.Message
-import co.koko.heartbeatmessages.ui.viewmodel.ChatViewModel
+import co.koko.heartbeatmessages.ui.components.rememberKeyboardHeight
+import co.koko.heartbeatmessages.ui.components.rememberKeyboardState
+import co.koko.heartbeatmessages.ui.viewmodel.ChatViewModelFactory
+import kotlinx.coroutines.delay
 
 @Composable
-fun ChatScreen(modifier: Modifier = Modifier, viewModel: ChatViewModel = viewModel()) {
+fun ChatScreen(modifier: Modifier = Modifier) {
+
+    val context = LocalContext.current
+    val viewModel: ChatViewModel = viewModel(
+        factory = ChatViewModelFactory(context.applicationContext as Application)
+    )
+
     val messages by viewModel.messages.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
 
-    // 새 메시지가 추가되면 맨 아래로 스크롤
-    LaunchedEffect(messages.size) {
+    // 키보드 상태 감지
+    val isKeyboardVisible by rememberKeyboardState()
+    val keyboardHeight by rememberKeyboardHeight()
+    val density = LocalDensity.current
+
+    // 키보드 높이를 dp로 변환
+    val keyboardHeightDp = with(density) { keyboardHeight.toDp() }
+
+    // 입력창 고정 높이
+    val inputBarHeight = 80.dp
+
+    // 입력창의 실제 위치 계산
+    val inputBarOffset = if (isKeyboardVisible) 250.dp else 0.dp
+    val listBottomPadding = inputBarOffset + inputBarHeight
+
+    // 키보드 상태 변화 감지 및 스크롤 처리
+    LaunchedEffect(isKeyboardVisible, messages.size) {
         if (messages.isNotEmpty()) {
+            delay(80) // 키보드 애니메이션 대기
             listState.animateScrollToItem(messages.size - 1)
         }
     }
 
-    // [핵심 구조] Column을 사용하여 목록과 입력창을 분리
-    Column(
-        modifier = modifier.fillMaxSize()
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .statusBarsPadding()
     ) {
-        // 채팅 목록 (남은 공간을 모두 차지)
+        // 채팅 목록 - 애니메이션 없이 즉시 패딩 적용
         LazyColumn(
             state = listState,
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = listBottomPadding), // 즉시 적용
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             itemsIndexed(messages) { index, message ->
-                // 첫 번째 AI 메시지는 버튼이 없는 버블 사용
                 if (index == 0 && !message.isFromUser) {
                     InitialMessageBubble(message = message)
                 } else {
@@ -59,12 +92,17 @@ fun ChatScreen(modifier: Modifier = Modifier, viewModel: ChatViewModel = viewMod
             }
         }
 
-        // 입력창 (키보드가 올라오면 이 부분만 위로 밀려남)
+        Log.d("inputBarOffset:", inputBarOffset.toString())
+//            .offset(y = -inputBarOffset) // 애니메이션이 적용된 offset
+        // 입력창만 부드러운 애니메이션 적용
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(16.dp),
+                .height(inputBarHeight)
+                .align(Alignment.BottomCenter)
+                .offset(y = -inputBarOffset) // 계산된 오프셋 사용
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
@@ -77,13 +115,17 @@ fun ChatScreen(modifier: Modifier = Modifier, viewModel: ChatViewModel = viewMod
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     disabledIndicatorColor = Color.Transparent
-                )
+                ),
+                maxLines = 3,
+                enabled = !isLoading
             )
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
-                    viewModel.sendMessage(inputText)
-                    inputText = ""
+                    if (inputText.isNotBlank()) {
+                        viewModel.sendMessage(inputText.trim())
+                        inputText = ""
+                    }
                 },
                 enabled = inputText.isNotBlank() && !isLoading,
                 shape = CircleShape,
@@ -91,14 +133,20 @@ fun ChatScreen(modifier: Modifier = Modifier, viewModel: ChatViewModel = viewMod
                 contentPadding = PaddingValues(0.dp)
             ) {
                 if (isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 } else {
-                    Text("전송")
+                    Text("전송", style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
     }
 }
+
+
 
 // 첫 번째 메시지를 위한 버튼 없는 버블
 @Composable

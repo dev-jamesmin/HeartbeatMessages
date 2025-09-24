@@ -2,7 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21" // Kotlin 버전에 맞춤
+    id("com.google.devtools.ksp") version "2.0.21-1.0.27"
 }
 
 android {
@@ -73,4 +74,10 @@ dependencies {
 
     // OkHttp Logging Interceptor (통신 로그 확인용)
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+
+    val room_version = "2.6.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    implementation("androidx.room:room-ktx:$room_version") // 코루틴 지원
+    ksp("androidx.room:room-compiler:$room_version") // 어노테이션 프로세서
 }
